@@ -1,5 +1,0 @@
-[phases.setup]
-nixPkgs = ["python312", "python312Packages.pip"]
-
-[start]
-cmd = "python main.py"
