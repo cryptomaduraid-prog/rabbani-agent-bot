@@ -1,7 +1,6 @@
-import os, time, logging
+import os, logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
-from telegram.error import Conflict
 from langchain_openai import ChatOpenAI
 
 logging.basicConfig(level=logging.INFO)
@@ -28,21 +27,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response.content)
 
 def main():
-    retries = 0
-    while True:
-        try:
-            app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-            app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-            logger.info("Asisten Rabbani running...")
-            app.run_polling(drop_pending_updates=True)
-        except Conflict:
-            retries += 1
-            wait = min(30 * retries, 120)
-            logger.warning(f"Conflict detected, waiting {wait}s before retry...")
-            time.sleep(wait)
-        except Exception as e:
-            logger.error(f"Error: {e}")
-            time.sleep(30)
+    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    logger.info("Asisten Rabbani starting...")
+    app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main()
