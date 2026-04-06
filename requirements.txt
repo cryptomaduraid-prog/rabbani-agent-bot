@@ -1,2 +1,6 @@
-python-telegram-bot==21.0
-langchain-openai
+python-telegram-bot==21.3
+openai>=1.40.0
+apscheduler==3.10.4
+pytz
+requests
+tzlocal
