@@ -8,6 +8,7 @@ import os, sys, re, json, logging, asyncio
 from datetime import datetime, time as dtime
 from typing import Optional
 
+import threading
 import requests
 from openai import AsyncOpenAI
 from telegram import Update
@@ -297,6 +298,23 @@ async def evening_update(bot):
     )
     await send_proactive(bot, msg)
 
+
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"OK - Rabbani Bot Running")
+    def log_message(self, *args):
+        pass  # suppress logs
+
+def run_health_server():
+    port = int(os.getenv("PORT", 8000))
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    server.serve_forever()
+
 # ─── Main ──────────────────────────────────────────────────────────────────
 def main():
     if not TELEGRAM_BOT_TOKEN:
@@ -322,6 +340,12 @@ def main():
         trigger="cron", hour=21, minute=0, id="evening"
     )
     scheduler.start()
+
+
+    # Start health check server (required for Koyeb web service)
+    t = threading.Thread(target=run_health_server, daemon=True)
+    t.start()
+    logger.info(f"Health server running on port {os.getenv('PORT', 8000)}")
 
     logger.info("🤖 Rabbani Agent started!")
     app.run_polling(drop_pending_updates=True)
